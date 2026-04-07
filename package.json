@@ -1,0 +1,33 @@
+{
+	"name": "pataflafla",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"dependencies": {
+		"@internationalized/date": "^3.8.1",
+		"bits-ui": "^2.17.2",
+		"dexie": "^4.4.2",
+		"lucide-svelte": "^1.0.1",
+		"svelte-i18n": "^4.0.1"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^7.0.0",
+		"@sveltejs/kit": "^2.50.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@types/node": "^24.5.2",
+		"@vite-pwa/assets-generator": "^1.0.0",
+		"@vite-pwa/sveltekit": "^1.1.0",
+		"svelte": "^5.54.0",
+		"svelte-check": "^4.4.2",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
+	}
+}
