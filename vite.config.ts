@@ -1,13 +1,21 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
+import { configDefaults } from 'vitest/config';
 
 export default defineConfig({
+	test: {
+		environment: 'happy-dom',
+		globals: true,
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+		exclude: [...configDefaults.exclude],
+		setupFiles: ['src/tests/setup.ts']
+	},
 	plugins: [
 		sveltekit(),
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
-			includeAssets: ['favicon.svg', 'icons/pataflafla.svg'],
+			includeAssets: ['favicon.ico', 'logo.svg', 'apple-touch-icon-180x180.png'],
 			kit: {
 				includeVersionFile: true
 			},
@@ -23,21 +31,30 @@ export default defineConfig({
 				lang: 'es',
 				icons: [
 					{
-						src: 'icons/pataflafla.svg',
-						sizes: 'any',
-						type: 'image/svg+xml',
-						purpose: 'any'
+						src: 'pwa-64x64.png',
+						sizes: '64x64',
+						type: 'image/png'
 					},
 					{
-						src: 'icons/pataflafla.svg',
-						sizes: 'any',
-						type: 'image/svg+xml',
+						src: 'pwa-192x192.png',
+						sizes: '192x192',
+						type: 'image/png'
+					},
+					{
+						src: 'pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png'
+					},
+					{
+						src: 'maskable-icon-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
 						purpose: 'maskable'
 					}
 				]
 			},
 			devOptions: {
-				enabled: true
+				enabled: false
 			}
 		})
 	]

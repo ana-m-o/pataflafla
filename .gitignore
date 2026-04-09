@@ -35,3 +35,6 @@ vite.config.ts.timestamp-*
 .idea
 .vscode/*
 !.vscode/extensions.json
+
+# PWA dev build
+dev-dist/
