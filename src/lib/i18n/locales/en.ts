@@ -36,10 +36,20 @@ export const en = {
 		cancel: 'Cancel'
 	},
 	categories: {
-		Scales: 'Scales',
-		Etudes: 'Etudes',
-		Repertoire: 'Repertoire',
-		Other: 'Other'
+		addNew: '+ Add category',
+		title: 'Add Category',
+		nameLabel: 'Category Name',
+		namePlaceholder: 'e.g., Rudiments, Scales, Arpeggios',
+		selectIcon: 'Select Icon',
+		accentColor: 'Accent Color',
+		create: 'Create Category'
+	},
+	groupBy: {
+		category: 'Category',
+		author: 'Teacher',
+		book: 'Book',
+		noAuthor: 'No teacher',
+		noBook: 'No book'
 	},
 	nav: {
 		exercises: 'Exercises',

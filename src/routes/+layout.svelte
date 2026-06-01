@@ -7,7 +7,10 @@
 	import '../styles/global.css';
 
 	// Hide bottom nav on all /exercises/ sub-routes (detail, new, edit…)
-	const showNav = $derived(!page.url.pathname.startsWith('/exercises/'));
+	const showNav = $derived(
+		!page.url.pathname.startsWith('/exercises/') &&
+		!page.url.pathname.startsWith('/categories/')
+	);
 
 	let { children } = $props();
 

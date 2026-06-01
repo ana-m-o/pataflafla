@@ -5,7 +5,17 @@
 	import { Search, User, ChevronUp, ChevronDown, Plus } from 'lucide-svelte';
 	import { db, type Exercise, type Practice } from '$db/index';
 	import { seedExercises } from '$db/exercises';
+	import { getSetting, setSetting } from '$lib/db/settings';
 	import ExerciseCard from '$components/ExerciseCard.svelte';
+
+	type GroupBy = 'category' | 'author' | 'book';
+
+	const GROUPBY_KEY = 'groupBy';
+	const GROUP_OPTIONS: { key: GroupBy; i18nKey: string }[] = [
+		{ key: 'category', i18nKey: 'groupBy.category' },
+		{ key: 'author',   i18nKey: 'groupBy.author' },
+		{ key: 'book',     i18nKey: 'groupBy.book' }
+	];
 
 	interface ExerciseWithStats extends Exercise {
 		lastPractice?: Practice;
@@ -13,7 +23,8 @@
 
 	let allExercises = $state<ExerciseWithStats[]>([]);
 	let query = $state('');
-	let collapsedCategories = $state(new Set<string>());
+	let groupBy = $state<GroupBy>('category');
+	let collapsedGroups = $state(new Set<string>());
 	let isLoading = $state(true);
 
 	const filtered = $derived(
@@ -27,14 +38,34 @@
 			: allExercises
 	);
 
-	const byCategory = $derived.by(() => {
+	const grouped = $derived.by(() => {
+		const noAuthor = $_('groupBy.noAuthor');
+		const noBook   = $_('groupBy.noBook');
 		const map = new Map<string, ExerciseWithStats[]>();
+
 		for (const ex of filtered) {
-			if (!map.has(ex.category)) map.set(ex.category, []);
-			map.get(ex.category)!.push(ex);
+			const key =
+				groupBy === 'category' ? ex.category :
+				groupBy === 'author'   ? (ex.author || noAuthor) :
+				                         (ex.book   || noBook);
+			if (!map.has(key)) map.set(key, []);
+			map.get(key)!.push(ex);
 		}
-		return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
+
+		// Named groups first (alphabetical), fallback groups last
+		return [...map.entries()].sort(([a], [b]) => {
+			const aFallback = a === noAuthor || a === noBook;
+			const bFallback = b === noAuthor || b === noBook;
+			if (aFallback !== bFallback) return aFallback ? 1 : -1;
+			return a.localeCompare(b);
+		});
 	});
+
+	async function setGroupBy(value: GroupBy) {
+		groupBy = value;
+		collapsedGroups = new Set(); // reset collapsed on group change
+		await setSetting(GROUPBY_KEY, value);
+	}
 
 	async function load() {
 		isLoading = true;
@@ -50,15 +81,14 @@
 		isLoading = false;
 	}
 
-	function toggleCategory(cat: string) {
-		if (collapsedCategories.has(cat)) {
-			collapsedCategories.delete(cat);
-		} else {
-			collapsedCategories.add(cat);
-		}
+	function toggleGroup(key: string) {
+		if (collapsedGroups.has(key)) collapsedGroups.delete(key);
+		else collapsedGroups.add(key);
 	}
 
 	onMount(async () => {
+		const saved = await getSetting(GROUPBY_KEY);
+		if (saved === 'author' || saved === 'book') groupBy = saved;
 		await seedExercises();
 		await load();
 	});
@@ -85,10 +115,15 @@
 
 		<div class="filter-scroll">
 			<div class="filter-chips">
-				<button class="chip">By Book <ChevronDown size={10} /></button>
-				<button class="chip">By Teacher <ChevronDown size={10} /></button>
-				<button class="chip">By Technique <ChevronDown size={10} /></button>
-				<button class="chip">By Difficulty <ChevronDown size={10} /></button>
+				{#each GROUP_OPTIONS as opt}
+					<button
+						class="chip"
+						class:chip--active={groupBy === opt.key}
+						onclick={() => setGroupBy(opt.key)}
+					>
+						{$_(opt.i18nKey)}
+					</button>
+				{/each}
 			</div>
 		</div>
 	</header>
@@ -98,18 +133,18 @@
 			<p class="state-msg">…</p>
 		{:else if allExercises.length === 0}
 			<p class="state-msg">{$_('exercises.noExercises')}</p>
-		{:else if byCategory.length === 0}
+		{:else if grouped.length === 0}
 			<p class="state-msg">{$_('exercises.noResults', { values: { query } })}</p>
 		{:else}
-			{#each byCategory as [category, exercises]}
-				{@const collapsed = collapsedCategories.has(category)}
+			{#each grouped as [groupKey, exercises]}
+				{@const collapsed = collapsedGroups.has(groupKey)}
 				<section class="category-section">
 					<button
 						class="category-header"
 						class:category-header--collapsed={collapsed}
-						onclick={() => toggleCategory(category)}
+						onclick={() => toggleGroup(groupKey)}
 					>
-						<span class="category-name">{category}</span>
+						<span class="category-name">{groupKey}</span>
 						{#if collapsed}
 							<ChevronDown size={12} />
 						{:else}
@@ -146,13 +181,9 @@
 
 	/* ── Sticky header ───────────────────────────────────── */
 	.page-header {
-		position: sticky;
-		top: 0;
-		z-index: 10;
 		background: color-mix(in srgb, var(--color-bg-layout) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
-		border-bottom: 1px solid var(--color-border-default);
 	}
 
 	.header-top {
@@ -247,6 +278,13 @@
 		gap: 4px;
 		white-space: nowrap;
 		letter-spacing: -0.02em;
+		transition: background 0.15s, border-color 0.15s, color 0.15s;
+	}
+
+	.chip--active {
+		background: var(--color-brand-primary);
+		border-color: var(--color-brand-primary);
+		color: var(--color-text-default);
 	}
 
 	/* ── Main content ────────────────────────────────────── */

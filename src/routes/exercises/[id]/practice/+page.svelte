@@ -190,7 +190,7 @@
 	});
 </script>
 
-<div class="page">
+<div class="page" class:page--has-photo={!!photoUrl}>
 	<!-- Header -->
 	<header class="page-header">
 		<button class="icon-btn" onclick={() => goto(`/exercises/${exerciseId}`)} aria-label="Back">
@@ -288,6 +288,20 @@
 			</div>
 		</section>
 
+		<!-- Progress bar (only when exercise has a duration) -->
+		{#if hasCountdown}
+			{@const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100))}
+			<div class="progress-section">
+				<div class="progress-labels">
+					<span class="progress-label">Progress</span>
+					<span class="progress-label">{pct}%</span>
+				</div>
+				<div class="progress-track" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+					<div class="progress-fill" style="width: {pct}%"></div>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Timer -->
 		<div class="timer-row">
 			<span class="timer-label" class:timer-label--active={isPlaying}>{timerLabel}</span>
@@ -326,14 +340,50 @@
 		background: var(--color-bg-layout);
 	}
 
+	/* When photo is present: lock to viewport height, distribute space */
+	.page--has-photo {
+		height: 100dvh;
+		overflow: hidden;
+	}
+
+	.page--has-photo .page-body {
+		overflow: hidden;
+		gap: 0;
+	}
+
+	.page--has-photo .suggestion-section {
+		margin-bottom: 16px;
+	}
+
+	.page--has-photo .photo-section {
+		flex: 0 1 128px;
+		min-height: 56px;
+		width: 100%;
+	}
+
+	.page--has-photo .photo-frame {
+		height: 100%;
+	}
+
+	.page--has-photo .metronome-section {
+		padding-top: 16px;
+	}
+
+	.page--has-photo .bpm-number {
+		font-size: clamp(64px, 14dvh, 120px);
+	}
+
+	.page--has-photo .timer-row {
+		margin-top: 16px;
+		padding-bottom: 8px;
+	}
+
 	/* ── Header ──────────────────────────────────────────── */
 	.page-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		padding: 16px;
-		border-bottom: 1px solid var(--color-border-default);
-		background: var(--color-bg-layout);
 	}
 
 	.icon-btn {
@@ -456,7 +506,6 @@
 	/* ── Reference photo ─────────────────────────────────── */
 	.photo-section {
 		width: 100%;
-		margin-bottom: 0;
 	}
 
 	.photo-frame {
@@ -557,6 +606,42 @@
 		border-radius: 9999px;
 		background: var(--color-text-default);
 		box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+	}
+
+	/* ── Progress bar ────────────────────────────────────── */
+	.progress-section {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.progress-labels {
+		display: flex;
+		justify-content: space-between;
+	}
+
+	.progress-label {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-strong);
+		text-transform: uppercase;
+		color: var(--color-text-tertiary);
+		letter-spacing: 0.08em;
+	}
+
+	.progress-track {
+		width: 100%;
+		height: 6px;
+		background: var(--color-border-default);
+		border-radius: 9999px;
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background: var(--color-brand-primary);
+		border-radius: 9999px;
+		transition: width 1s linear;
 	}
 
 	/* ── Finish button ───────────────────────────────────── */

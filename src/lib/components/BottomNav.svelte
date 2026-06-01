@@ -38,7 +38,7 @@
 		z-index: 20;
 		background: var(--color-bg-component);
 		border-top: 1px solid var(--color-border-default);
-		padding-bottom: 24px;
+		padding-bottom: 8px;
 		padding-top: 9px;
 	}
 

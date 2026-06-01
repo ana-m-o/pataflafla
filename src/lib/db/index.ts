@@ -10,13 +10,19 @@ export interface UserSetting {
 	value: string;
 }
 
-export type ExerciseCategory = 'Scales' | 'Etudes' | 'Repertoire' | 'Other';
+export interface Category {
+	id?: number;
+	name: string;
+	icon: string;  // lucide icon name
+	color: string; // hex color
+	createdAt: string;
+}
 
 export interface Exercise {
 	id?: number;
 	name: string;
 	targetBpm: number;
-	category: ExerciseCategory;
+	category: string;
 	author?: string;
 	book?: string;
 	duration?: number; // total seconds
@@ -42,6 +48,7 @@ export const db = new Dexie('PataflaflaDB') as Dexie & {
 	settings: EntityTable<UserSetting, 'key'>;
 	exercises: EntityTable<Exercise, 'id'>;
 	practices: EntityTable<Practice, 'id'>;
+	categories: EntityTable<Category, 'id'>;
 };
 
 db.version(1).stores({
@@ -58,4 +65,12 @@ db.version(3).stores({
 	settings: 'key',
 	exercises: '++id, category',
 	practices: '++id, exerciseId, date'
+});
+
+db.version(4).stores({
+	placeholders: '++id, createdAt',
+	settings: 'key',
+	exercises: '++id, category',
+	practices: '++id, exerciseId, date',
+	categories: '++id, name'
 });

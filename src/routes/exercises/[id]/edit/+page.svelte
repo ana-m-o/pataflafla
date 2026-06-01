@@ -2,23 +2,21 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { ChevronLeft, Music, BookOpen, Disc3, MoreHorizontal, Camera } from 'lucide-svelte';
-	import { db, type ExerciseCategory } from '$db/index';
+	import { Music, BookOpen, Disc3, MoreHorizontal, Mic2, Headphones, Music2, Speaker, ListMusic, Radio, Camera } from 'lucide-svelte';
+	import SubPageHeader from '$components/SubPageHeader.svelte';
+	import { db, type Category } from '$db/index';
+	import { getCategories, seedCategories } from '$lib/db/categories';
+
+	const ICON_MAP: Record<string, typeof Music> = {
+		Music, BookOpen, Disc3, MoreHorizontal, Mic2, Headphones, Music2, Speaker, ListMusic, Radio
+	};
 
 	const exerciseId = $derived(parseInt(page.params.id ?? '0'));
 	const originalId = $derived(page.url.searchParams.get('originalId'));
 
-	const CAT_ICONS = {
-		Scales: Music,
-		Etudes: BookOpen,
-		Repertoire: Disc3,
-		Other: MoreHorizontal
-	} as const;
-
-	const CAT_VALUES = ['Scales', 'Etudes', 'Repertoire', 'Other'] as const;
-
+	let categories = $state<Category[]>([]);
 	let name = $state('');
-	let category = $state<ExerciseCategory | null>(null);
+	let category = $state<string | null>(null);
 	let author = $state('');
 	let book = $state('');
 	let targetBpm = $state(120);
@@ -27,7 +25,7 @@
 	let currentPhotoBlob = $state<Blob | null>(null);
 	let photoFile = $state<File | null>(null);
 	let photoPreview = $state<string | null>(null);
-	let photoInput: HTMLInputElement;
+	let photoInput = $state<HTMLInputElement | null>(null);
 
 	const canSave = $derived(name.trim().length > 0 && category !== null);
 
@@ -86,16 +84,15 @@
 		}
 	}
 
-	onMount(() => { load(); });
+	onMount(async () => {
+		await seedCategories();
+		categories = await getCategories();
+		await load();
+	});
 </script>
 
 <div class="page">
-	<header class="page-header">
-		<button class="back-btn" onclick={discard} aria-label="Go back">
-			<ChevronLeft size={20} />
-		</button>
-		<h1 class="page-title">Edit Exercise</h1>
-	</header>
+	<SubPageHeader title="Edit Exercise" onBack={discard} />
 
 	<main class="page-main">
 		<!-- Exercise Name -->
@@ -114,19 +111,25 @@
 		<div class="field">
 			<p class="field-label" id="cat-label">Category</p>
 			<div class="cat-grid" role="group" aria-labelledby="cat-label">
-				{#each CAT_VALUES as val}
-					{@const Icon = CAT_ICONS[val]}
+				{#each categories as cat}
+					{@const Icon = ICON_MAP[cat.icon] ?? Music}
 					<button
 						type="button"
 						class="cat-btn"
-						class:cat-btn--active={category === val}
-						onclick={() => (category = val)}
+						class:cat-btn--active={category === cat.name}
+						onclick={() => (category = cat.name)}
 					>
 						<Icon size={16} />
-						{val}
+						{cat.name}
 					</button>
 				{/each}
 			</div>
+			<a
+				href="/categories/new?returnTo=/exercises/{exerciseId}/edit{originalId ? `?originalId=${originalId}` : ''}"
+				class="add-cat-link"
+			>
+				+ Add category
+			</a>
 		</div>
 
 		<!-- Author / Book -->
@@ -214,11 +217,11 @@
 				onchange={handlePhotoChange}
 			/>
 			{#if photoPreview}
-				<button type="button" class="photo-preview-btn" onclick={() => photoInput.click()}>
+				<button type="button" class="photo-preview-btn" onclick={() => photoInput?.click()}>
 					<img src={photoPreview} alt="Reference" class="photo-preview" />
 				</button>
 			{:else}
-				<button type="button" class="photo-drop-zone" onclick={() => photoInput.click()}>
+				<button type="button" class="photo-drop-zone" onclick={() => photoInput?.click()}>
 					<Camera size={28} />
 					<span>Scan Sheet Music</span>
 				</button>
@@ -239,40 +242,6 @@
 		flex-direction: column;
 	}
 
-	/* ── Header ─────────────────────────────────────────── */
-	.page-header {
-		display: flex;
-		align-items: center;
-		padding: 16px 16px 9px;
-		border-bottom: 1px solid rgba(255, 212, 0, 0.1);
-		background: var(--color-bg-layout);
-		position: sticky;
-		top: 0;
-		z-index: 10;
-	}
-
-	.back-btn {
-		background: none;
-		border: none;
-		border-radius: 9999px;
-		width: 48px;
-		height: 48px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--color-text-default);
-		flex-shrink: 0;
-	}
-
-	.page-title {
-		flex: 1;
-		text-align: center;
-		font-size: var(--font-size-h4);
-		font-weight: var(--font-weight-strong);
-		color: var(--color-text-default);
-		letter-spacing: -0.02em;
-		padding-right: 48px; /* optical centering */
-	}
 
 	/* ── Main ────────────────────────────────────────────── */
 	.page-main {
@@ -359,6 +328,15 @@
 	}
 
 	/* ── Suffix inputs ───────────────────────────────────── */
+	/* ── Add category link ───────────────────────────────── */
+	.add-cat-link {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-strong);
+		color: var(--color-brand-primary);
+		text-decoration: none;
+		margin-top: 4px;
+	}
+
 	.suffix-wrapper {
 		position: relative;
 	}
@@ -435,7 +413,7 @@
 		position: sticky;
 		bottom: 0;
 		background: var(--color-bg-layout);
-		border-top: 1px solid rgba(255, 212, 0, 0.1);
+		border-top: 1px solid var(--color-border-default);
 		padding: 17px 16px 16px;
 		display: grid;
 		grid-template-columns: 1fr 1fr;

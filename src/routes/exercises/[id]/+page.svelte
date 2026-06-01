@@ -15,6 +15,7 @@
 	let photoUrl = $state<string | null>(null);
 	let deleteOpen = $state(false);
 	let entryOpen = $state(false);
+	let photoInputEl = $state<HTMLInputElement | null>(null);
 
 	// Add manual entry form
 	let entryBpm = $state(0);
@@ -92,6 +93,14 @@
 			createdAt: new Date().toISOString().split('T')[0]
 		})) as number;
 		goto(`/exercises/${newId}/edit?originalId=${exerciseId}`);
+	}
+
+	async function handlePhotoChange(e: Event) {
+		const file = (e.target as HTMLInputElement).files?.[0];
+		if (!file) return;
+		if (photoUrl) URL.revokeObjectURL(photoUrl);
+		await db.exercises.update(exerciseId, { referencePhoto: file });
+		photoUrl = URL.createObjectURL(file);
 	}
 
 	async function deletePractice(practiceId: number) {
@@ -246,19 +255,28 @@
 			</section>
 
 			<!-- Reference photo -->
-			{#if exercise.referencePhoto || true}
-				<section class="section">
-					<h2 class="section-title">Reference Photo</h2>
+			<section class="section">
+				<h2 class="section-title">Reference Photo</h2>
+				<input
+					bind:this={photoInputEl}
+					type="file"
+					accept="image/*"
+					capture="environment"
+					class="photo-input-hidden"
+					onchange={handlePhotoChange}
+				/>
+				<button class="photo-edit-btn" onclick={() => photoInputEl?.click()} aria-label="Change reference photo">
 					{#if photoUrl}
 						<img src={photoUrl} alt="Reference" class="reference-photo" />
+						<span class="photo-edit-badge"><Camera size={14} /></span>
 					{:else}
 						<div class="photo-placeholder">
 							<Camera size={28} />
 							<span>Scan Sheet Music</span>
 						</div>
 					{/if}
-				</section>
-			{/if}
+				</button>
+			</section>
 
 			<!-- Progress chart -->
 			<section class="section">
@@ -421,9 +439,6 @@
 
 	/* ── Header ──────────────────────────────────────────── */
 	.page-header {
-		position: sticky;
-		top: 0;
-		z-index: 10;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -431,7 +446,6 @@
 		background: color-mix(in srgb, var(--color-bg-layout) 85%, transparent);
 		backdrop-filter: blur(6px);
 		-webkit-backdrop-filter: blur(6px);
-		border-bottom: 1px solid var(--color-border-default);
 	}
 
 	.header-title {
@@ -508,6 +522,7 @@
 		text-transform: uppercase;
 		color: var(--color-text-default);
 		letter-spacing: 0.04em;
+		line-height: 1.2em;
 	}
 
 	/* ── Quick stats ─────────────────────────────────────── */
@@ -562,6 +577,7 @@
 		font-size: 10px;
 		font-weight: var(--font-weight-strong);
 		color: var(--color-text-tertiary);
+		line-height: 1.2em;
 	}
 
 	/* ── Sections ────────────────────────────────────────── */
@@ -569,7 +585,7 @@
 		padding: 0 24px 24px;
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: 4px;
 	}
 
 	.section-header {
@@ -588,11 +604,41 @@
 	}
 
 	/* ── Reference photo ─────────────────────────────────── */
+	.photo-input-hidden {
+		display: none;
+	}
+
+	.photo-edit-btn {
+		position: relative;
+		display: block;
+		width: 100%;
+		border: none;
+		padding: 0;
+		background: none;
+		cursor: pointer;
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
 	.reference-photo {
 		width: 100%;
 		height: 128px;
 		object-fit: cover;
-		border-radius: 12px;
+		display: block;
+	}
+
+	.photo-edit-badge {
+		position: absolute;
+		bottom: 8px;
+		right: 8px;
+		width: 28px;
+		height: 28px;
+		background: var(--color-brand-primary);
+		border-radius: 9999px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--color-text-default);
 	}
 
 	.photo-placeholder {

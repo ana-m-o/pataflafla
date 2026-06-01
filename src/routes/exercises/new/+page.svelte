@@ -1,20 +1,19 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { _ } from 'svelte-i18n';
-	import { ChevronLeft, Music, BookOpen, Disc3, MoreHorizontal, Camera } from 'lucide-svelte';
-	import { db, type ExerciseCategory } from '$db/index';
+	import { Music, BookOpen, Disc3, MoreHorizontal, Mic2, Headphones, Music2, Speaker, ListMusic, Radio, Camera } from 'lucide-svelte';
+	import SubPageHeader from '$components/SubPageHeader.svelte';
+	import { db, type Category } from '$db/index';
+	import { getCategories, seedCategories } from '$lib/db/categories';
 
-	const CAT_ICONS = {
-		Scales: Music,
-		Etudes: BookOpen,
-		Repertoire: Disc3,
-		Other: MoreHorizontal
-	} as const;
+	const ICON_MAP: Record<string, typeof Music> = {
+		Music, BookOpen, Disc3, MoreHorizontal, Mic2, Headphones, Music2, Speaker, ListMusic, Radio
+	};
 
-	const CAT_VALUES = ['Scales', 'Etudes', 'Repertoire', 'Other'] as const;
-
+	let categories = $state<Category[]>([]);
 	let name = $state('');
-	let category = $state<ExerciseCategory | null>(null);
+	let category = $state<string | null>(null);
 	let author = $state('');
 	let book = $state('');
 	let targetBpm = $state(120);
@@ -22,7 +21,7 @@
 	let description = $state('');
 	let photoFile = $state<File | null>(null);
 	let photoPreview = $state<string | null>(null);
-	let photoInput: HTMLInputElement;
+	let photoInput = $state<HTMLInputElement | null>(null);
 
 	const canSave = $derived(name.trim().length > 0 && category !== null);
 
@@ -52,15 +51,15 @@
 		});
 		goto('/');
 	}
+
+	onMount(async () => {
+		await seedCategories();
+		categories = await getCategories();
+	});
 </script>
 
 <div class="page">
-	<header class="page-header">
-		<button class="back-btn" onclick={() => goto('/')} aria-label="Go back">
-			<ChevronLeft size={20} />
-		</button>
-		<h1 class="page-title">{$_('exercises.newExercise')}</h1>
-	</header>
+	<SubPageHeader title={$_('exercises.newExercise')} onBack={() => goto('/')} />
 
 	<main class="page-main">
 		<!-- Exercise Name -->
@@ -79,19 +78,22 @@
 		<div class="field">
 			<p class="field-label" id="cat-label">{$_('exercises.category')}</p>
 			<div class="cat-grid" role="group" aria-labelledby="cat-label">
-				{#each CAT_VALUES as val}
-					{@const Icon = CAT_ICONS[val]}
+				{#each categories as cat}
+					{@const Icon = ICON_MAP[cat.icon] ?? Music}
 					<button
 						type="button"
 						class="cat-btn"
-						class:cat-btn--active={category === val}
-						onclick={() => (category = val)}
+						class:cat-btn--active={category === cat.name}
+						onclick={() => (category = cat.name)}
 					>
 						<Icon size={16} />
-						{$_(`categories.${val}`)}
+						{cat.name}
 					</button>
 				{/each}
 			</div>
+			<a href="/categories/new?returnTo=/exercises/new" class="add-cat-link">
+				{$_('categories.addNew')}
+			</a>
 		</div>
 
 		<!-- Author / Book -->
@@ -179,11 +181,11 @@
 				onchange={handlePhotoChange}
 			/>
 			{#if photoPreview}
-				<button type="button" class="photo-preview-btn" onclick={() => photoInput.click()}>
+				<button type="button" class="photo-preview-btn" onclick={() => photoInput?.click()}>
 					<img src={photoPreview} alt="Reference" class="photo-preview" />
 				</button>
 			{:else}
-				<button type="button" class="photo-drop-zone" onclick={() => photoInput.click()}>
+				<button type="button" class="photo-drop-zone" onclick={() => photoInput?.click()}>
 					<Camera size={28} class="photo-icon" />
 					<span class="photo-label">Scan Sheet Music</span>
 				</button>
@@ -204,43 +206,6 @@
 		display: flex;
 		flex-direction: column;
 		padding-bottom: 0;
-	}
-
-	/* ── Header ─────────────────────────────────────────── */
-	.page-header {
-		display: flex;
-		align-items: center;
-		gap: 0;
-		padding: 16px 16px 9px;
-		border-bottom: 1px solid rgba(255, 212, 0, 0.1);
-		background: var(--color-bg-layout);
-		position: sticky;
-		top: 0;
-		z-index: 10;
-	}
-
-	.back-btn {
-		background: none;
-		border: none;
-		border-radius: 9999px;
-		width: 48px;
-		height: 48px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--color-text-default);
-		flex-shrink: 0;
-	}
-
-	.page-title {
-		flex: 1;
-		text-align: center;
-		font-size: var(--font-size-h4);
-		font-weight: var(--font-weight-strong);
-		color: var(--color-text-default);
-		letter-spacing: -0.02em;
-		/* optical centering: subtract the back button width */
-		padding-right: 48px;
 	}
 
 	/* ── Main ────────────────────────────────────────────── */
@@ -331,6 +296,15 @@
 		font-weight: var(--font-weight-strong);
 	}
 
+	/* ── Add category link ───────────────────────────────── */
+	.add-cat-link {
+		font-size: var(--font-size-sm);
+		font-weight: var(--font-weight-strong);
+		color: var(--color-brand-primary);
+		text-decoration: none;
+		margin-top: 4px;
+	}
+
 	/* ── BPM ─────────────────────────────────────────────── */
 	.bpm-range {
 		display: flex;
@@ -409,7 +383,7 @@
 		position: sticky;
 		bottom: 0;
 		background: var(--color-bg-layout);
-		border-top: 1px solid rgba(255, 212, 0, 0.1);
+		border-top: 1px solid var(--color-border-default);
 		padding: 17px 16px 16px;
 	}
 
