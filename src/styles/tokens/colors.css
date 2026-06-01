@@ -14,6 +14,7 @@
 
 	--color-bg-layout: #f9fafb;
 	--color-bg-component: #ffffff;
+	--color-bg-subtle: #f1f5f9;
 
 	--color-border-default: #e5e7eb;
 	--color-border-success: rgba(34, 197, 94, 0.2);
@@ -33,6 +34,7 @@
 
 	--color-bg-layout: #1e1f21;
 	--color-bg-component: #292929;
+	--color-bg-subtle: #313131;
 
 	--color-border-default: #3e4551;
 	--color-border-success: rgba(34, 197, 94, 0.25);
