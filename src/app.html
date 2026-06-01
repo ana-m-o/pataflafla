@@ -1,8 +1,18 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-theme="light" data-accent="yellow">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- Previene flash al cargar: aplica tema guardado antes de que renderice el DOM -->
+		<script>
+			(function () {
+				var t = localStorage.getItem('theme') || 'light';
+				var a = localStorage.getItem('accent') || 'yellow';
+				document.documentElement.setAttribute('data-theme', t);
+				document.documentElement.setAttribute('data-accent', a);
+			})();
+		</script>
+
 		<link rel="icon" href="/favicon.ico" sizes="any" />
 		<link rel="icon" href="/logo.svg" type="image/svg+xml" />
 		<link rel="manifest" href="/manifest.webmanifest" />

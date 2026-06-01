@@ -5,5 +5,13 @@ export const en = {
 		language: 'Language',
 		spanish: 'Spanish',
 		english: 'English'
+	},
+	theme: {
+		label: 'Theme',
+		light: 'Light',
+		dark: 'Dark',
+		accent: 'Accent',
+		yellow: 'Yellow',
+		cyan: 'Cyan'
 	}
 };

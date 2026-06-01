@@ -27,6 +27,18 @@ describe('smoke', () => {
 		expect(Object.keys(es.app)).toEqual(Object.keys(en.app));
 	});
 
+	it('es locale has all required theme keys', () => {
+		expect(es.theme.label).toBeTruthy();
+		expect(es.theme.light).toBeTruthy();
+		expect(es.theme.dark).toBeTruthy();
+		expect(es.theme.yellow).toBeTruthy();
+		expect(es.theme.cyan).toBeTruthy();
+	});
+
+	it('both locales share the same theme keys', () => {
+		expect(Object.keys(es.theme)).toEqual(Object.keys(en.theme));
+	});
+
 	it('db module exports a Dexie instance', async () => {
 		const { db } = await import('$lib/db/index');
 		expect(db).toBeDefined();

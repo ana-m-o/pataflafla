@@ -1,0 +1,74 @@
+/* ============================================================
+   COLOR TOKENS
+   Separados en dos dimensiones:
+   - data-theme="light|dark"   → colores base (textos, fondos, bordes)
+   - data-accent="yellow|cyan" → color primario de marca
+   ============================================================ */
+
+/* ── Light ─────────────────────────────────────────────────── */
+[data-theme='light'] {
+	--color-text-default: #111827;
+	--color-text-secondary: #4c5a70;
+	--color-text-tertiary: #7f90a8;
+	--color-text-inverted: #ffffff;
+
+	--color-bg-layout: #f9fafb;
+	--color-bg-component: #ffffff;
+
+	--color-border-default: #e5e7eb;
+	--color-border-success: rgba(34, 197, 94, 0.2);
+
+	--color-brand-danger: #ef4444;
+	--color-brand-danger-shade: rgba(239, 68, 68, 0.05);
+	--color-brand-success: #22c55e;
+	--color-brand-success-muted: rgba(34, 197, 94, 0.1);
+}
+
+/* ── Dark ───────────────────────────────────────────────────── */
+[data-theme='dark'] {
+	--color-text-default: #f9fafb;
+	--color-text-secondary: #cddbea;
+	--color-text-tertiary: #7f90a8;
+	--color-text-inverted: #1e1f21;
+
+	--color-bg-layout: #1e1f21;
+	--color-bg-component: #292929;
+
+	--color-border-default: #3e4551;
+	--color-border-success: rgba(34, 197, 94, 0.25);
+
+	--color-brand-danger: #ef4444;
+	--color-brand-danger-shade: rgba(239, 68, 68, 0.1);
+	--color-brand-success: #22c55e;
+	--color-brand-success-muted: rgba(34, 197, 94, 0.15);
+}
+
+/* ── Accent: Yellow ─────────────────────────────────────────── */
+[data-accent='yellow'] {
+	--color-brand-primary: #ffd400;
+	--color-brand-primary-shade: rgba(255, 212, 0, 0.3);
+}
+
+/* ── Accent: Cyan ───────────────────────────────────────────── */
+[data-accent='cyan'] {
+	--color-brand-primary: #06b6d4;
+	--color-brand-primary-shade: rgba(6, 182, 212, 0.3);
+}
+
+/* ── Combos: muted primary (opacidad varía según tema) ──────── */
+[data-theme='light'][data-accent='yellow'] {
+	--color-border-primary-muted: rgba(255, 212, 0, 0.3);
+	--color-bg-primary-muted: rgba(255, 212, 0, 0.1);
+}
+[data-theme='dark'][data-accent='yellow'] {
+	--color-border-primary-muted: rgba(255, 212, 0, 0.2);
+	--color-bg-primary-muted: rgba(255, 212, 0, 0.15);
+}
+[data-theme='light'][data-accent='cyan'] {
+	--color-border-primary-muted: rgba(6, 182, 212, 0.3);
+	--color-bg-primary-muted: rgba(6, 182, 212, 0.1);
+}
+[data-theme='dark'][data-accent='cyan'] {
+	--color-border-primary-muted: rgba(6, 182, 212, 0.2);
+	--color-bg-primary-muted: rgba(6, 182, 212, 0.15);
+}
